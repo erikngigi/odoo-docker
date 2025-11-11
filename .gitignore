@@ -36,7 +36,6 @@ Thumbs.db
 **/.dockerignore
 
 # Ignore named volumes and container data
-**/data/
 **/volumes/
 **/db_data/
 **/redis_data/
