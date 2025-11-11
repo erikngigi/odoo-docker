@@ -1,6 +1,6 @@
 services:
   odoo:
-    image: odoo:18.0
+    image: ghcr.io/erikngigi/odoo:18
     container_name: odoo18
     environment:
       HOST: ${ODOO_HOST}
