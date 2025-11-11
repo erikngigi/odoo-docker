@@ -1,0 +1,37 @@
+name: custom odoo18.
+on:
+  push:
+    branches: ["dev"]
+    paths:
+      - 'dockerfiles/odoo18/**'
+      - '.github/workflows/custom-odoo18.yml'
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Custom tag for the image (optional)'
+        required: false
+        default: 'latest'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./dockerfiles/odoo18
+          file: ./dockerfiles/odoo18/Dockerfile
+          push: true
+          tags: ghcr.io/${{ vars.GHCR_USERNAME }}/odoo:18
+      - name: Image build complete
+        run: echo "✅ Odoo 18 custom docker image built and pushed successfully."
