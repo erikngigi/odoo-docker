@@ -1,0 +1,66 @@
+# ====================================
+# General
+# ====================================
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+*.pid
+*.seed
+.DS_Store
+Thumbs.db
+
+# ====================================
+# Environment Files
+# ====================================
+.env
+.env.*
+!.env.example
+
+# ====================================
+# Docker
+# ====================================
+# Ignore build artifacts, volumes, and intermediate data
+**/docker-compose.override.yml
+**/docker-compose.override.yaml
+**/docker-compose.local.yml
+**/docker-compose.dev.yml
+**/docker-compose.debug.yml
+
+# Ignore local Docker build cache
+**/build/
+**/tmp/
+**/cache/
+**/.docker/
+**/.dockerignore
+
+# Ignore named volumes and container data
+**/data/
+**/volumes/
+**/db_data/
+**/redis_data/
+**/mysql_data/
+**/postgres_data/
+
+# ====================================
+# Node / Python / PHP / etc.
+# ====================================
+node_modules/
+vendor/
+__pycache__/
+*.pyc
+
+# ====================================
+# IDE / Editor Config
+# ====================================
+.vscode/
+.idea/
+*.code-workspace
+
+# ====================================
+# OS / Misc
+# ====================================
+*.bak
+*.old
+*.orig
