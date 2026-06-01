@@ -1,30 +1,88 @@
 services:
-  odoo:
-    image: ghcr.io/erikngigi/odoo:18
-    container_name: odoo18
+  db:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: odoo-db
+    restart: unless-stopped
     environment:
-      HOST: ${ODOO_HOST}
-      USER: ${ODOO_USER}
-      PASSWORD: ${ODOO_PASSWORD}
-    depends_on:
-      - postgres
-    ports:
-      - "127.0.0.1:8069:8069"
-    volumes:
-      - odoo-volume:/var/lib/odoo
-      - ./addons:/mnt/extra-addons:ro
-  postgres:
-    image: postgres:14
-    container_name: postgres14-db
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_USER: ${POSTGRES_USER}
-      PGDATA: ${PGDATA}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      PGDATA: /var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     volumes:
-      - postgres-volume:/var/lib/postgresql/data/pgdata
+      - db-data:/var/lib/postgresql/data
+      - ./config/custom-postgres.conf:/etc/postgresql/postgresql.conf
+    networks:
+      - odoo-net
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+  odoo:
+    image: odoo:${ODOO_VERSION}
+    container_name: odoo
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${ODOO_PORT}:8069"
+      - "127.0.0.1:${ODOO_GEVENT_PORT}:8072" # Longpolling port required for live chat / real-time updates
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./config/odoo.conf:/etc/odoo/odoo.conf:ro
+    networks:
+      - odoo-net
+    environment:
+      - HOST=${ODOO_DB_HOST}
+      - USER=${ODOO_DB_USER}
+      - PASSWORD=${ODOO_DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8069/web/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+    # CRITICAL: Ensures Odoo stalls execution until the database passes healthchecks
+    depends_on:
+      db:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    command: -d ${POSTGRES_DB} -i base
 volumes:
-  odoo-volume:
-    name: odoo18-data-volume
-  postgres-volume:
-    name: postgres-data-volume
+  db-data:
+    driver: local
+    name: odoo-database
+  odoo-data:
+    driver: local
+    name: odoo
+networks:
+  odoo-net:
+    driver: bridge
+    name: odoo-network

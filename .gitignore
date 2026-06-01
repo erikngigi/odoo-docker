@@ -63,3 +63,8 @@ __pycache__/
 *.bak
 *.old
 *.orig
+
+# ====================================
+# Ignore configuration files
+# ====================================
+config/odoo.conf

@@ -1,0 +1,105 @@
+name: Build Custom Odoo 18 Image
+on:
+  push:
+    branches: ["development"]
+    paths:
+      - '.github/workflows/odoo18-custom-build.yml'
+      - '.env'
+      - 'config/**'
+      - 'custom-addons/**'
+      - 'dockerfiles/odoo18/Dockerfile'
+  workflow_dispatch:
+    inputs:
+      image_name:
+        description: 'Image name'
+        required: true
+        default: 'odoo18-custom'
+        type: string
+      image_tag:
+        description: 'Image tag (e.g. development, staging, production)'
+        required: true
+        default: 'latest'
+        type: string
+      push_image:
+        description: 'Push image to GHCR after build'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/${{ inputs.image_name || 'roadsmart-core-api' }}
+  IMAGE_TAG: ${{ inputs.image_tag || 'latest' }}
+jobs:
+  build-odoo18-custom:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check code
+        uses: actions/checkout@v4.2.2
+      - name: Echo trigger information
+        run: |
+          echo "============================================"
+          echo "  Odoo 18 Custom Image Build"
+          echo "============================================"
+          echo "Triggered by  : ${{ github.event_name }}"
+          echo "Branch        : ${{ github.ref_name }}"
+          echo "Commit SHA    : ${{ github.sha }}"
+          echo "Actor         : ${{ github.actor }}"
+          echo "Registry      : ${{ env.REGISTRY }}"
+          echo "Image name    : ${{ env.IMAGE_NAME }}"
+          echo "Image tag     : ${{ env.IMAGE_TAG }}"
+          echo "Full image    : ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}"
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "Push image    : ${{ inputs.push_image }}"
+          fi
+          echo "============================================"
+      - name: Log in to GHCR
+        uses: docker/login-action@v3.4.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set uo Docker Buildx
+        uses: docker/setup-buildx-action@v3.10.0
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5.7.0 # Node.js 24 ✓
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ env.IMAGE_TAG }}
+            type=raw,value=latest
+      - name: Echo build start
+        run: |
+          echo "============================================"
+          echo "  Starting Docker build..."
+          echo "  Context : ./dockerfiles/odoo18"
+          echo "  Tags    : ${{ steps.meta.outputs.tags }}"
+          echo "============================================"
+      - name: Build custom odoo 18 GHCR image
+        uses: docker/build-push-action@v6.15.0 # Node.js 24 ✓
+        with:
+          context: ./dockerfiles/odoo18
+          file: ./dockerfiles/odoo18/Dockerfile
+          push: ${{ github.event_name == 'push' || inputs.push_image == 'true' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          no-cache: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Echo build result
+        run: |
+          echo "============================================"
+          if [ "${{ github.event_name }}" == "push" ] || [ "${{ inputs.push_image }}" == "true" ]; then
+            echo "  Build complete. Image pushed to GHCR."
+            echo "  Pull with:"
+            echo "  docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}"
+          else
+            echo "  Build complete. Image was NOT pushed (dispatch with push_image=false)."
+          fi
+          echo "============================================"
