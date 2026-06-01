@@ -30,7 +30,7 @@ on:
           - 'false'
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/${{ inputs.image_name || 'roadsmart-core-api' }}
+  IMAGE_NAME: ${{ github.repository_owner }}/${{ inputs.image_name || 'odoo18-custom' }}
   IMAGE_TAG: ${{ inputs.image_tag || 'latest' }}
 jobs:
   build-odoo18-custom:
