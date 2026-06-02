@@ -53,7 +53,7 @@ services:
       db:
         condition: service_healthy
     # This command initializes the base modules and safely shuts down
-    command: ["odoo", "-d", "${POSTGRES_DB}", "-i", "base", "--without-demo", "--stop-after-init"]
+    command: ["odoo", "-d", "${POSTGRES_DB}", "-i", "base", "--without-demo=all", "--stop-after-init"]
   odoo:
     image: ghcr.io/erikngigi/odoo:${ODOO_VERSION}
     container_name: odoo
