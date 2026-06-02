@@ -11,7 +11,7 @@ RUN pip3 install --no-cache-dir --target=/opt/odoolibs \
     qifparse
 
 # Add that directory to Python's module search path
-ENV PYTHONPATH="/opt/odoolibs:$PYTHONPATH"
+ENV PYTHONPATH=/usr/lib/python3/dist-packages:/custom-addons
 
 # Revert to Odoo user for security
 USER odoo
