@@ -33,7 +33,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/${{ inputs.image_name || 'odoo' }}
-  IMAGE_TAG: ${{ github.ref_type == 'tag' && replace(github.ref_name, 'v', '') || inputs.image_tag || '18' }}
+  IMAGE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || inputs.image_tag || '18' }}
 jobs:
   build-odoo18-custom:
     runs-on: ubuntu-latest
@@ -74,8 +74,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            tags: |
-            type=raw,value=${{ env.IMAGE_TAG }}
+            type=semver,pattern={{version}},value=${{ github.ref_name }},enable=${{ github.ref_type == 'tag' }}
+            type=raw,value=${{ env.IMAGE_TAG }},enable=${{ github.ref_type != 'tag' }}
             type=raw,value=latest,enable=${{ github.ref_type == 'branch' }}
       - name: Echo build start
         run: |
