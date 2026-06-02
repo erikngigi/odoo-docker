@@ -4,6 +4,9 @@ FROM odoo:18.0
 # Switch to root to install system-level packages
 USER root
 
+# Install fonts
+RUN apt-get update && apt-get install -y xfonts-base xfonts-75dpi
+
 # Install Python dependencies (use --target for isolation)
 RUN pip3 install --no-cache-dir --target=/opt/odoolibs \
     openpyxl \
