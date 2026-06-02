@@ -41,6 +41,7 @@ services:
     container_name: odoo-initializer
     volumes:
       - odoo-data:/var/lib/odoo
+      - ./custom_addons:/mnt/extra-addons:rw
       - ./config/odoo.conf:/etc/odoo/odoo.conf:ro
     networks:
       - odoo-net
@@ -52,7 +53,7 @@ services:
       db:
         condition: service_healthy
     # This command initializes the base modules and safely shuts down
-    command: ["odoo", "-d", "${POSTGRES_DB}", "-i", "base", "--stop-after-init"]
+    command: ["odoo", "-d", "${POSTGRES_DB}", "-i", "base", "--without-demo", "--stop-after-init"]
   odoo:
     image: ghcr.io/erikngigi/odoo:${ODOO_VERSION}
     container_name: odoo
@@ -62,6 +63,7 @@ services:
       - "127.0.0.1:${ODOO_GEVENT_PORT}:8072" # Longpolling port required for live chat / real-time updates
     volumes:
       - odoo-data:/var/lib/odoo
+      - ./custom_addons:/mnt/extra-addons:rw
       - ./config/odoo.conf:/etc/odoo/odoo.conf:ro
     networks:
       - odoo-net
