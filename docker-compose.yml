@@ -35,8 +35,29 @@ services:
         max-size: "10m"
         max-file: "5"
     command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+  # One Time Initialization Service
+  odoo-init:
+    image: ghcr.io/erikngigi/odoo18-custom:latest
+    container_name: odoo-initializer
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./config/odoo.conf:/etc/odoo/odoo.conf:ro
+    networks:
+      - odoo-net
+    environment:
+      - HOST=${ODOO_DB_HOST}
+      - USER=${ODOO_DB_USER}
+      - PASSWORD=${ODOO_DB_PASSWORD}
+      # Pass your custom credentials here via your .env file
+      - ADMIN_USER_SIGNIN=${NEW_ADMIN_EMAIL}
+      - ADMIN_USER_PASSWORD=${NEW_ADMIN_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    # This command initializes the base modules and safely shuts down
+    command: ["odoo", "-d", "${POSTGRES_DB}", "-i", "base", "--stop-after-init"]
   odoo:
-    image: odoo:${ODOO_VERSION}
+    image: ghcr.io/erikngigi/odoo18-custom:latest
     container_name: odoo
     restart: unless-stopped
     ports:
@@ -69,6 +90,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      odoo-init:
+        condition: service_completed_successfully
     logging:
       driver: "json-file"
       options:
