@@ -1,4 +1,5 @@
 services:
+  # Odoo Postgresql Database
   db:
     image: postgres:${POSTGRES_VERSION}
     container_name: odoo-db
@@ -35,25 +36,7 @@ services:
         max-size: "10m"
         max-file: "5"
     command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
-  # One Time Initialization Service
-  # odoo-init:
-  #   image: ghcr.io/erikngigi/odoo:${ODOO_VERSION}
-  #   container_name: odoo-initializer
-  #   volumes:
-  #     - odoo-data:/var/lib/odoo
-  #     - ./custom_addons:/mnt/extra-addons:rw
-  #     - ./config/odoo.conf:/etc/odoo/odoo.conf:ro
-  #   networks:
-  #     - odoo-net
-  #   environment:
-  #     - HOST=${ODOO_DB_HOST}
-  #     - USER=${ODOO_DB_USER}
-  #     - PASSWORD=${ODOO_DB_PASSWORD}
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #   # This command initializes the base modules and safely shuts down
-  #   command: ["odoo", "-d", "${POSTGRES_DB}", "-i", "base", "--without-demo=all", "--stop-after-init"]
+  # Odoo Main Application
   odoo:
     image: ghcr.io/erikngigi/odoo:${ODOO_VERSION}
     container_name: odoo
@@ -85,12 +68,9 @@ services:
         reservations:
           cpus: '1.0'
           memory: 2G
-    # CRITICAL: Ensures Odoo stalls execution until the database passes healthchecks
     depends_on:
       db:
         condition: service_healthy
-        # odoo-init:
-        #   condition: service_completed_successfully
     logging:
       driver: "json-file"
       options:
