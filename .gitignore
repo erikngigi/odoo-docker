@@ -68,3 +68,9 @@ __pycache__/
 # Ignore configuration files
 # ====================================
 config/odoo.conf
+
+# =============================================
+# Ignore bind mount created by docker-compose
+# =============================================
+postgresql_data/
+odoo_data/
