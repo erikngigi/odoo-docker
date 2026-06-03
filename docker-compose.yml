@@ -48,7 +48,6 @@ services:
       - odoo-data:/var/lib/odoo
       - ./custom_addons:/mnt/extra-addons:rw
       - ./config/odoo.conf:/etc/odoo/odoo.conf:ro
-      - ./odoo-server.log:/etc/odoo/odoo-server.log:rw
     networks:
       - odoo-net
     environment:

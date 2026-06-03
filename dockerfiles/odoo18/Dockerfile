@@ -5,7 +5,13 @@ FROM odoo:18.0
 USER root
 
 # Install fonts
-RUN apt-get update && apt-get install -y xfonts-base xfonts-75dpi
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    fonts-liberation \
+    fonts-urw-base35 \
+    xfonts-75dpi \
+    xfonts-base \
+    && rm -rf /var/lib/apt/lists/* \
+    && fc-cache -f -v
 
 # Install Python dependencies (use --target for isolation)
 RUN pip3 install --no-cache-dir --target=/opt/odoolibs \
@@ -14,7 +20,7 @@ RUN pip3 install --no-cache-dir --target=/opt/odoolibs \
     qifparse
 
 # Add that directory to Python's module search path
-ENV PYTHONPATH=/usr/lib/python3/dist-packages:/custom-addons
+ENV PYTHONPATH="/opt/odoolibs:$PYTHONPATH"
 
 # Revert to Odoo user for security
 USER odoo
