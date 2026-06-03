@@ -46,7 +46,7 @@ services:
       - "127.0.0.1:${ODOO_GEVENT_PORT}:8072" # Longpolling port required for live chat / real-time updates
     volumes:
       - odoo-data:/var/lib/odoo
-      - ./custom_addons:/mnt/extra-addons:rw
+      - ./custom-addons:/mnt/extra-addons:rw
       - ./config/odoo.conf:/etc/odoo/odoo.conf:ro
     networks:
       - odoo-net
